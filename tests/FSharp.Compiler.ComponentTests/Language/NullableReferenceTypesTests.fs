@@ -171,3 +171,44 @@ let myFunction (input1 : string | null) (input2 : string | null): (string*string
     |> typeCheckWithStrictNullness
     |> shouldFail
     |> withErrorCode 3261
+
+[<Fact>]
+let ``Option ofObj should remove when used inline`` () = 
+    FSharp """module MyLibrary
+
+let processOpt2 (s: string | null) : string option = Option.ofObj s
+
+"""
+    |> asLibrary
+    |> typeCheckWithStrictNullness
+    |> shouldSucceed
+
+[<Fact>]
+let ``Option ofObj should remove nullness`` () = 
+    FSharp """module MyLibrary
+let processOpt (s: string | null) : string option =
+    let stringOpt = Option.ofObj s
+    stringOpt
+
+let processOpt2 (s: string | null) : string option =
+    Option.ofObj s
+
+let processOpt3 (s: string | null) : string option = s |> Option.ofObj
+"""
+    |> asLibrary
+    |> typeCheckWithStrictNullness
+    |> shouldSucceed
+
+[<Fact>]
+let ``Option ofObj called in a useless way does nothing`` () = 
+    FSharp """module MyLibrary
+let processOpt (s: string) : string option =
+    let stringOpt = Option.ofObj s
+    stringOpt
+
+let processOpt2 (s: string) : string option =
+    Option.ofObj s
+"""
+    |> asLibrary
+    |> typeCheckWithStrictNullness
+    |> shouldSucceed
